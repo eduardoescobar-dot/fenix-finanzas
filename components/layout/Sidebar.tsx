@@ -12,6 +12,7 @@ import {
   Flame,
   ChevronLeft,
   ChevronRight,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,11 @@ const navItems = [
     label: "Nóminas",
     href: "/nominas",
     icon: Users,
+  },
+  {
+    label: "G. Personales",
+    href: "/gastos-personales",
+    icon: ShoppingBag,
   },
   {
     label: "Reportes",
