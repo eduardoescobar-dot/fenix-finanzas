@@ -23,6 +23,10 @@ export interface SuscripcionData {
   uso: string;
   necesidad: string;
   notas: string;
+  correo_asociado: string;
+  metodo_pago: string;
+  meses_activo: number;
+  costo_acumulado: number;
 }
 
 export async function addSuscripcion(data: SuscripcionData): Promise<ActionResult> {

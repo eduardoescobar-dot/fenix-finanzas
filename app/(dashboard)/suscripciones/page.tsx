@@ -16,6 +16,10 @@ export type Suscripcion = {
   uso: string;
   necesidad: string;
   notas: string | null;
+  correo_asociado: string | null;
+  metodo_pago: string | null;
+  meses_activo: number | null;
+  costo_acumulado: number | null;
   created_at: string;
 };
 

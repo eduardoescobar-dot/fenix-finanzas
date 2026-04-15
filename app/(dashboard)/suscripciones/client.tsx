@@ -30,10 +30,13 @@ function fmt(v: number) {
   return `$ ${v.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+const METODOS_PAGO = ["TARJETA", "PAYPAL", "TRANSFERENCIA", "OTRO"];
+
 const EMPTY: SuscripcionData = {
   nombre: "", categoria: "OPERACIONES", frecuencia: "MENSUAL", costo_mensual: 0,
   moneda: "USD", fecha_pago: "", tarjeta: "", proximo_pago: "", responsable: "",
   estado: "ACTIVO", uso: "MEDIO", necesidad: "NECESARIO", notas: "",
+  correo_asociado: "", metodo_pago: "TARJETA", meses_activo: 0, costo_acumulado: 0,
 };
 
 // ─── Badges ──────────────────────────────────────────────────
@@ -136,8 +139,28 @@ function SuscripcionForm({
         </div>
       </div>
       <div className="space-y-1">
-        <Label className="text-xs text-slate-400">Notas</Label>
-        <Input value={form.notas} onChange={(e) => set("notas", e.target.value)} placeholder="Opcional" className="h-8 bg-[#1a1a24] border-[#24243a] text-white text-sm" />
+        <Label className="text-xs text-slate-400">Correo asociado</Label>
+        <Input value={form.correo_asociado} onChange={(e) => set("correo_asociado", e.target.value)} placeholder="cesar@academyfenix.com" className="h-8 bg-[#1a1a24] border-[#24243a] text-white text-sm" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs text-slate-400">Método de pago</Label>
+          <select value={form.metodo_pago} onChange={sel("metodo_pago")} className={selectCls}>
+            {METODOS_PAGO.map(m => <option key={m}>{m}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs text-slate-400">Meses activo</Label>
+          <Input type="number" min="0" value={form.meses_activo} onChange={(e) => set("meses_activo", parseInt(e.target.value) || 0)} className="h-8 bg-[#1a1a24] border-[#24243a] text-white text-sm" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs text-slate-400">Costo acumulado</Label>
+          <Input type="number" step="0.01" min="0" value={form.costo_acumulado} onChange={(e) => set("costo_acumulado", parseFloat(e.target.value) || 0)} className="h-8 bg-[#1a1a24] border-[#24243a] text-white text-sm" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs text-slate-400">Notas</Label>
+          <Input value={form.notas} onChange={(e) => set("notas", e.target.value)} placeholder="Opcional" className="h-8 bg-[#1a1a24] border-[#24243a] text-white text-sm" />
+        </div>
       </div>
       <Button type="submit" disabled={isPending} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold">
         {isPending ? "Guardando..." : "Guardar"}
@@ -257,8 +280,8 @@ export function SuscripcionesClient({ data }: { data: Suscripcion[] }) {
         <Table>
           <TableHeader>
             <TableRow className="border-white/[0.06] hover:bg-transparent">
-              {["Herramienta","Categoría","Frecuencia","Costo/mes","Tarjeta","Próximo pago","Responsable","Estado","Uso","Necesidad",""].map((h, i) => (
-                <TableHead key={i} className={cn("text-white/40 text-[11px] font-medium uppercase tracking-wider", i === 0 && "pl-4", i === 10 && "pr-4 w-16")}>{h}</TableHead>
+              {["Herramienta","Categoría","Frecuencia","Costo/mes","Acumulado","Tarjeta","Próximo pago","Responsable","Estado","Uso","Necesidad",""].map((h, i) => (
+                <TableHead key={i} className={cn("text-white/40 text-[11px] font-medium uppercase tracking-wider", i === 0 && "pl-4", i === 11 && "pr-4 w-16")}>{h}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -268,12 +291,21 @@ export function SuscripcionesClient({ data }: { data: Suscripcion[] }) {
                 <TableCell className="pl-4">
                   <div>
                     <p className="text-sm font-semibold text-white">{s.nombre}</p>
-                    {s.notas && <p className="text-[10px] text-white/35">{s.notas}</p>}
+                    {s.correo_asociado
+                      ? <p className="text-[10px] text-white/30">{s.correo_asociado}</p>
+                      : s.notas && <p className="text-[10px] text-white/35">{s.notas}</p>
+                    }
                   </div>
                 </TableCell>
                 <TableCell><CategoriaBadge cat={s.categoria} /></TableCell>
                 <TableCell><span className="text-xs text-white/50">{s.frecuencia}</span></TableCell>
                 <TableCell className="text-right"><span className="text-sm font-semibold text-white">{fmt(s.costo_mensual)}</span></TableCell>
+                <TableCell className="text-right">
+                  <div>
+                    <span className="text-sm font-semibold text-orange-400/80">{s.costo_acumulado ? fmt(s.costo_acumulado) : "—"}</span>
+                    {s.meses_activo != null && s.meses_activo > 0 && <p className="text-[10px] text-white/25">{s.meses_activo} mes{s.meses_activo !== 1 ? "es" : ""}</p>}
+                  </div>
+                </TableCell>
                 <TableCell><span className="rounded bg-white/[0.06] px-2 py-0.5 text-[11px] font-mono text-white/50">•••• {s.tarjeta}</span></TableCell>
                 <TableCell><span className="text-xs text-white/50">{s.proximo_pago}</span></TableCell>
                 <TableCell><span className="text-xs text-white/60">{s.responsable}</span></TableCell>
@@ -333,7 +365,7 @@ export function SuscripcionesClient({ data }: { data: Suscripcion[] }) {
           </DialogHeader>
           {editItem && (
             <SuscripcionForm
-              initial={{ nombre: editItem.nombre, categoria: editItem.categoria, frecuencia: editItem.frecuencia, costo_mensual: editItem.costo_mensual, moneda: editItem.moneda, fecha_pago: editItem.fecha_pago ?? "", tarjeta: editItem.tarjeta ?? "", proximo_pago: editItem.proximo_pago ?? "", responsable: editItem.responsable ?? "", estado: editItem.estado, uso: editItem.uso, necesidad: editItem.necesidad, notas: editItem.notas ?? "" }}
+              initial={{ nombre: editItem.nombre, categoria: editItem.categoria, frecuencia: editItem.frecuencia, costo_mensual: editItem.costo_mensual, moneda: editItem.moneda, fecha_pago: editItem.fecha_pago ?? "", tarjeta: editItem.tarjeta ?? "", proximo_pago: editItem.proximo_pago ?? "", responsable: editItem.responsable ?? "", estado: editItem.estado, uso: editItem.uso, necesidad: editItem.necesidad, notas: editItem.notas ?? "", correo_asociado: editItem.correo_asociado ?? "", metodo_pago: editItem.metodo_pago ?? "TARJETA", meses_activo: editItem.meses_activo ?? 0, costo_acumulado: editItem.costo_acumulado ?? 0 }}
               onSubmit={handleEdit}
               isPending={isPending}
             />
