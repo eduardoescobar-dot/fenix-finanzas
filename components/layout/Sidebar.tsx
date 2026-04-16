@@ -13,40 +13,20 @@ import {
   ChevronLeft,
   ChevronRight,
   ShoppingBag,
+  TrendingUp,
+  Plane,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  {
-    label: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Suscripciones",
-    href: "/suscripciones",
-    icon: CreditCard,
-  },
-  {
-    label: "Marketing",
-    href: "/marketing",
-    icon: Megaphone,
-  },
-  {
-    label: "Nóminas",
-    href: "/nominas",
-    icon: Users,
-  },
-  {
-    label: "G. Personales",
-    href: "/gastos-personales",
-    icon: ShoppingBag,
-  },
-  {
-    label: "Reportes",
-    href: "/reportes",
-    icon: FileBarChart,
-  },
+  { label: "Dashboard",    href: "/",                  icon: LayoutDashboard },
+  { label: "Ingresos",     href: "/ingresos",           icon: TrendingUp      },
+  { label: "Suscripciones",href: "/suscripciones",      icon: CreditCard      },
+  { label: "Marketing",    href: "/marketing",          icon: Megaphone       },
+  { label: "Nóminas",      href: "/nominas",            icon: Users           },
+  { label: "G. Personales",href: "/gastos-personales",  icon: ShoppingBag     },
+  { label: "Vuelos",       href: "/vuelos",             icon: Plane           },
+  { label: "Reportes",     href: "/reportes",           icon: FileBarChart    },
 ];
 
 export function Sidebar() {
@@ -72,12 +52,8 @@ export function Sidebar() {
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <p className="truncate text-sm font-semibold text-white">
-              Fénix Finanzas
-            </p>
-            <p className="truncate text-[10px] text-white/40">
-              Fénix Academy
-            </p>
+            <p className="truncate text-sm font-semibold text-white">Fénix Finanzas</p>
+            <p className="truncate text-[10px] text-white/40">Fénix Academy</p>
           </div>
         )}
       </div>
@@ -87,9 +63,7 @@ export function Sidebar() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
           return (
             <Link
@@ -119,15 +93,9 @@ export function Sidebar() {
       {!collapsed && (
         <div className="border-t border-white/[0.06] p-4">
           <div className="rounded-lg bg-orange-500/10 p-3 ring-1 ring-orange-500/20">
-            <p className="text-[11px] font-medium text-orange-400">
-              Inversión mensual
-            </p>
-            <p className="mt-0.5 text-base font-bold text-white">
-              € 383,28
-            </p>
-            <p className="mt-1 text-[10px] text-white/40">
-              14 herramientas activas
-            </p>
+            <p className="text-[11px] font-medium text-orange-400">Inversión mensual</p>
+            <p className="mt-0.5 text-base font-bold text-white">€ 383,28</p>
+            <p className="mt-1 text-[10px] text-white/40">14 herramientas activas</p>
           </div>
         </div>
       )}
@@ -138,11 +106,7 @@ export function Sidebar() {
         className="absolute -right-3 top-[72px] flex h-6 w-6 items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0d14] text-white/40 shadow-lg transition-colors hover:text-white/80"
         aria-label={collapsed ? "Expandir sidebar" : "Colapsar sidebar"}
       >
-        {collapsed ? (
-          <ChevronRight className="h-3 w-3" />
-        ) : (
-          <ChevronLeft className="h-3 w-3" />
-        )}
+        {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
       </button>
     </aside>
   );
