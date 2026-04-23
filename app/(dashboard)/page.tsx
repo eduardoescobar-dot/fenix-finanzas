@@ -7,7 +7,6 @@ import {
   Megaphone,
   AlertCircle,
   ShoppingBag,
-  DollarSign,
   ArrowUpRight,
 } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
