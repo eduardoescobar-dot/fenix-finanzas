@@ -32,7 +32,7 @@ export default async function VuelosPage() {
   const total2024 = vuelos.filter(v => v.año === 2024 && v.deducible).reduce((s, v) => s + v.monto, 0);
   const total2025 = vuelos.filter(v => v.año === 2025 && v.deducible).reduce((s, v) => s + v.monto, 0);
   const totalDeducible = total2024 + total2025;
-  const noDeducible = vuelos.filter(v => !v.deducible).reduce((s, v) => s + v.monto, 0);
+  const _noDeducible = vuelos.filter(v => !v.deducible).reduce((s, v) => s + v.monto, 0);
   const sinPrecio = vuelos.filter(v => v.monto === 0 && v.deducible).length;
 
   const AEROL_STYLE: Record<string, string> = {
