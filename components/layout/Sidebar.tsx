@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -19,19 +19,31 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Dashboard",    href: "/",                  icon: LayoutDashboard },
-  { label: "Ingresos",     href: "/ingresos",           icon: TrendingUp      },
-  { label: "Suscripciones",href: "/suscripciones",      icon: CreditCard      },
-  { label: "Marketing",    href: "/marketing",          icon: Megaphone       },
-  { label: "Nóminas",      href: "/nominas",            icon: Users           },
-  { label: "G. Personales",href: "/gastos-personales",  icon: ShoppingBag     },
-  { label: "Vuelos",       href: "/vuelos",             icon: Plane           },
-  { label: "Reportes",     href: "/reportes",           icon: FileBarChart    },
+  { label: "Dashboard",     href: "/",                 icon: LayoutDashboard },
+  { label: "Ingresos",      href: "/ingresos",          icon: TrendingUp      },
+  { label: "Suscripciones", href: "/suscripciones",     icon: CreditCard      },
+  { label: "Marketing",     href: "/marketing",         icon: Megaphone       },
+  { label: "Nóminas",       href: "/nominas",           icon: Users           },
+  { label: "G. Personales", href: "/gastos-personales", icon: ShoppingBag     },
+  { label: "Vuelos",        href: "/vuelos",            icon: Plane           },
+  { label: "Reportes",      href: "/reportes",          icon: FileBarChart    },
 ];
+
+function fmt(v: number) {
+  return `$ ${v.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const [kpis, setKpis] = useState<{ inversionMensual: number; herramientasActivas: number } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/kpis")
+      .then((r) => r.json())
+      .then(setKpis)
+      .catch(() => {});
+  }, []);
 
   return (
     <aside
@@ -89,13 +101,17 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
+      {/* Footer KPI */}
       {!collapsed && (
         <div className="border-t border-white/[0.06] p-4">
           <div className="rounded-lg bg-orange-500/10 p-3 ring-1 ring-orange-500/20">
             <p className="text-[11px] font-medium text-orange-400">Inversión mensual</p>
-            <p className="mt-0.5 text-base font-bold text-white">€ 383,28</p>
-            <p className="mt-1 text-[10px] text-white/40">14 herramientas activas</p>
+            <p className="mt-0.5 text-base font-bold text-white">
+              {kpis ? fmt(kpis.inversionMensual) : "—"}
+            </p>
+            <p className="mt-1 text-[10px] text-white/40">
+              {kpis ? `${kpis.herramientasActivas} herramientas activas` : "Cargando..."}
+            </p>
           </div>
         </div>
       )}

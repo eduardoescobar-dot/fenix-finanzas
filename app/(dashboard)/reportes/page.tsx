@@ -22,7 +22,7 @@ export default async function ReportesPage() {
   ]);
 
   const allSuscs = suscs ?? [];
-  const activas = allSuscs.filter((s) => s.estado === "ACTIVO");
+  const activas = allSuscs.filter((s) => s.estado === "ACTIVA");
 
   const inversionMensual = activas.reduce((s, x) => s + x.costo_mensual, 0);
   const inversionHistorica = allSuscs.reduce((s, x) => s + (x.costo_acumulado ?? 0), 0);
@@ -44,14 +44,14 @@ export default async function ReportesPage() {
 
   const gastoTotalMensual = inversionMensual + pagoMensualNominas + totalInvertidoMkt;
 
-  const categorias = ["Comunicación", "Marketing", "IA", "Operaciones", "Ventas", "Diseño"];
+  const categorias = ["Comunicación", "Marketing", "IA", "Operaciones", "Ventas", "Diseño", "Tech"];
   const catMap: Record<string, string> = {
     COMUNICACION: "Comunicación", MARKETING: "Marketing", IA: "IA",
-    OPERACIONES: "Operaciones", VENTAS: "Ventas", DISEÑO: "Diseño",
+    OPERACIONES: "Operaciones", VENTAS: "Ventas", DISEÑO: "Diseño", TECH: "Tech",
   };
   const catColors: Record<string, string> = {
     Comunicación: "#f97316", Marketing: "#fb923c", IA: "#fdba74",
-    Operaciones: "#fed7aa", Ventas: "#ffedd5", Diseño: "#fff7ed",
+    Operaciones: "#fed7aa", Ventas: "#fcd34d", Diseño: "#f0abfc", Tech: "#38bdf8",
   };
   const gastosPorCategoria = categorias.map((cat) => ({
     categoria: cat,
