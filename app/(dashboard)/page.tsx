@@ -46,8 +46,8 @@ export default async function DashboardPage() {
 
   // ── Suscripciones KPIs ──────────────────────────────────────
   const allSuscs = suscs ?? [];
-  const activas = allSuscs.filter((s) => s.estado === "ACTIVO");
-  const canceladas = allSuscs.filter((s) => s.estado === "CANCELADO");
+  const activas = allSuscs.filter((s) => s.estado === "ACTIVA");
+  const canceladas = allSuscs.filter((s) => s.estado === "PAUSADA");
   const inversionMensual = activas.reduce((s, x) => s + x.costo_mensual, 0);
   const prescindibles = activas.filter(
     (s) => s.necesidad === "PRESCINDIBLE" || s.necesidad === "INECESARIO"
@@ -57,14 +57,14 @@ export default async function DashboardPage() {
     .sort((a, b) => b.costo_mensual - a.costo_mensual)
     .slice(0, 5);
 
-  const categorias = ["Comunicación", "Marketing", "IA", "Operaciones", "Ventas", "Diseño"];
+  const categorias = ["Comunicación", "Marketing", "IA", "Operaciones", "Ventas", "Diseño", "Tech"];
   const catMap: Record<string, string> = {
     COMUNICACION: "Comunicación", MARKETING: "Marketing", IA: "IA",
-    OPERACIONES: "Operaciones", VENTAS: "Ventas", DISEÑO: "Diseño",
+    OPERACIONES: "Operaciones", VENTAS: "Ventas", DISEÑO: "Diseño", TECH: "Tech",
   };
   const catColors: Record<string, string> = {
     Comunicación: "#f97316", Marketing: "#fb923c", IA: "#fdba74",
-    Operaciones: "#fed7aa", Ventas: "#ffedd5", Diseño: "#fff7ed",
+    Operaciones: "#fed7aa", Ventas: "#fcd34d", Diseño: "#f0abfc", Tech: "#38bdf8",
   };
   const gastosPorCategoria = categorias.map((cat) => ({
     categoria: cat,
@@ -125,8 +125,26 @@ export default async function DashboardPage() {
   // ── Gastos Personales ────────────────────────────────────────
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const gpMes = (gastosPersonales ?? []).filter((g) => g.fecha?.substring(0, 7) === currentMonth);
+  const gpAll = gastosPersonales ?? [];
+  const gpMes = gpAll.filter((g) => g.fecha?.substring(0, 7) === currentMonth);
   const totalGastoPersonalMes = gpMes.reduce((s, g) => s + g.monto, 0);
+
+  // Monthly trend for GastosTrendChart (gastos personales grouped by month)
+  const MESES_LABELS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  const monthlyMap: Record<string, number> = {};
+  gpAll.forEach((g) => {
+    if (g.fecha) {
+      const key = g.fecha.substring(0, 7);
+      monthlyMap[key] = (monthlyMap[key] ?? 0) + g.monto;
+    }
+  });
+  const gastosTrendData = Object.entries(monthlyMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-10)
+    .map(([month, total]) => {
+      const [year, m] = month.split("-");
+      return { mes: `${MESES_LABELS[parseInt(m) - 1]} ${year}`, total: Math.round(total) };
+    });
 
   return (
     <div className="flex flex-col gap-6 p-6 pb-10">
@@ -194,7 +212,7 @@ export default async function DashboardPage() {
         <KPICard
           title="Inversión SaaS/mes"
           value={fmt(inversionMensual)}
-          subtitle={`${activas.length} activas · ${canceladas.length} canceladas`}
+          subtitle={`${activas.length} activas · ${canceladas.length} pausadas`}
           icon={CreditCard}
           accent
         />
@@ -259,7 +277,7 @@ export default async function DashboardPage() {
             </span>
           </div>
           <div className="h-52">
-            <GastosTrendChart />
+            <GastosTrendChart data={gastosTrendData} />
           </div>
         </div>
 
@@ -269,7 +287,7 @@ export default async function DashboardPage() {
             <p className="text-xs text-white/40">Distribución mensual activas</p>
           </div>
           <div className="h-52">
-            <CategoriasPieChart />
+            <CategoriasPieChart data={gastosPorCategoria} />
           </div>
         </div>
       </div>

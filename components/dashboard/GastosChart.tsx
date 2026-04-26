@@ -13,12 +13,11 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { gastosMensuales, gastosPorCategoria } from "@/lib/data/sheets-data";
 
-function formatEUR(value: number) {
-  return `€ ${value.toLocaleString("es-ES", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+function formatUSD(value: number) {
+  return `$ ${value.toLocaleString("es-ES", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   })}`;
 }
 
@@ -29,6 +28,7 @@ const PIE_COLORS = [
   "#c2410c",
   "#ea580c",
   "#9a3412",
+  "#38bdf8",
 ];
 
 interface CustomTooltipProps {
@@ -43,7 +43,7 @@ function AreaTooltip({ active, payload, label }: CustomTooltipProps) {
       <div className="rounded-lg border border-white/[0.08] bg-[#1a1a25] px-3 py-2 shadow-xl">
         <p className="text-xs font-medium text-white/60">{label}</p>
         <p className="mt-0.5 text-sm font-bold text-orange-400">
-          {formatEUR(payload[0].value)}
+          {formatUSD(payload[0].value)}
         </p>
       </div>
     );
@@ -57,7 +57,7 @@ function PieTooltip({ active, payload }: CustomTooltipProps) {
       <div className="rounded-lg border border-white/[0.08] bg-[#1a1a25] px-3 py-2 shadow-xl">
         <p className="text-xs font-medium text-white/60">{payload[0].name}</p>
         <p className="mt-0.5 text-sm font-bold text-orange-400">
-          {formatEUR(payload[0].value)}
+          {formatUSD(payload[0].value)}
         </p>
       </div>
     );
@@ -65,11 +65,14 @@ function PieTooltip({ active, payload }: CustomTooltipProps) {
   return null;
 }
 
-export function GastosTrendChart() {
+type TrendRow = { mes: string; total: number };
+type CatRow = { categoria: string; total: number; color?: string };
+
+export function GastosTrendChart({ data }: { data: TrendRow[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart
-        data={gastosMensuales}
+        data={data}
         margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
       >
         <defs>
@@ -94,7 +97,7 @@ export function GastosTrendChart() {
           tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 11 }}
           axisLine={false}
           tickLine={false}
-          tickFormatter={(v) => `€${v}`}
+          tickFormatter={(v) => `$${v}`}
           width={52}
         />
         <Tooltip content={<AreaTooltip />} />
@@ -112,12 +115,13 @@ export function GastosTrendChart() {
   );
 }
 
-export function CategoriasPieChart() {
+export function CategoriasPieChart({ data }: { data: CatRow[] }) {
+  const filtered = data.filter((d) => d.total > 0);
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
         <Pie
-          data={gastosPorCategoria}
+          data={filtered}
           cx="50%"
           cy="50%"
           innerRadius={55}
@@ -126,10 +130,10 @@ export function CategoriasPieChart() {
           dataKey="total"
           nameKey="categoria"
         >
-          {gastosPorCategoria.map((entry, index) => (
+          {filtered.map((entry, index) => (
             <Cell
               key={entry.categoria}
-              fill={PIE_COLORS[index % PIE_COLORS.length]}
+              fill={entry.color ?? PIE_COLORS[index % PIE_COLORS.length]}
             />
           ))}
         </Pie>
