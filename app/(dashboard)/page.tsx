@@ -38,7 +38,7 @@ export default async function DashboardPage() {
     { data: gastosPersonales },
   ] = await Promise.all([
     supabase.from("suscripciones").select("nombre,costo_mensual,estado,necesidad,categoria"),
-    supabase.from("campanas_marketing").select("total_invertido,ingresos,tipo,fecha,nombre"),
+    supabase.from("campanas_marketing").select("total_invertido,ingresos,tipo,fecha_inicio,nombre"),
     supabase.from("integrantes").select("salario_mensual,activo"),
     supabase.from("pagos_nomina").select("monto"),
     supabase.from("gastos_personales").select("monto,fecha"),
@@ -78,10 +78,10 @@ export default async function DashboardPage() {
     (c) => ["COMISION_2024", "ZELLE_SPARTANS_2024", "STRIPE_PAYOUT"].includes(c.tipo) && c.ingresos > 0
   );
   const total2024 = ingresoRows
-    .filter((r) => r.fecha && new Date(r.fecha).getFullYear() === 2024)
+    .filter((r) => r.fecha_inicio && new Date(r.fecha_inicio).getFullYear() === 2024)
     .reduce((s, r) => s + r.ingresos, 0);
   const total2025 = ingresoRows
-    .filter((r) => r.fecha && new Date(r.fecha).getFullYear() === 2025)
+    .filter((r) => r.fecha_inicio && new Date(r.fecha_inicio).getFullYear() === 2025)
     .reduce((s, r) => s + r.ingresos, 0);
   const totalIngresos = total2024 + total2025;
   const growth = total2024 > 0 ? ((total2025 - total2024) / total2024 * 100).toFixed(1) : "0";
@@ -91,8 +91,8 @@ export default async function DashboardPage() {
   const monthly2024 = Array(12).fill(0);
   const monthly2025 = Array(12).fill(0);
   ingresoRows.forEach((r) => {
-    if (!r.fecha) return;
-    const d = new Date(r.fecha);
+    if (!r.fecha_inicio) return;
+    const d = new Date(r.fecha_inicio);
     const m = d.getMonth();
     if (d.getFullYear() === 2024) monthly2024[m] += r.ingresos;
     if (d.getFullYear() === 2025) monthly2025[m] += r.ingresos;
@@ -106,8 +106,8 @@ export default async function DashboardPage() {
   const zelle2024 = ingresoRows.filter((r) => r.tipo === "ZELLE_SPARTANS_2024").reduce((s, r) => s + r.ingresos, 0);
   const stripe2025 = ingresoRows.filter((r) => r.tipo === "STRIPE_PAYOUT").reduce((s, r) => s + r.ingresos, 0);
   const anioData = [
-    { año: "2024", comisiones: Math.round(comisiones2024), zelle: Math.round(zelle2024), stripe: 0 },
-    { año: "2025", comisiones: 0, zelle: 0, stripe: Math.round(stripe2025) },
+    ...(total2024 > 0 ? [{ año: "2024", comisiones: Math.round(comisiones2024), zelle: Math.round(zelle2024), stripe: 0 }] : []),
+    ...(total2025 > 0 ? [{ año: "2025", comisiones: 0, zelle: 0, stripe: Math.round(stripe2025) }] : []),
   ];
 
   // ── Marketing KPIs ───────────────────────────────────────────
@@ -165,12 +165,14 @@ export default async function DashboardPage() {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-white">Ingresos Totales</h2>
-            <p className="text-xs text-white/40">2024 + 2025 · Auditoría fiscal Fénix Academy</p>
+            <p className="text-xs text-white/40">{[total2024 > 0 && "2024", total2025 > 0 && "2025"].filter(Boolean).join(" + ")} · Auditoría fiscal Fénix Academy</p>
           </div>
-          <div className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-1 ring-1 ring-emerald-500/20">
-            <ArrowUpRight className="h-3 w-3 text-emerald-400" />
-            <span className="text-[11px] font-semibold text-emerald-400">+{growth}% vs 2024</span>
-          </div>
+          {total2024 > 0 && (
+            <div className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-1 ring-1 ring-emerald-500/20">
+              <ArrowUpRight className="h-3 w-3 text-emerald-400" />
+              <span className="text-[11px] font-semibold text-emerald-400">+{growth}% vs 2024</span>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-5">
@@ -179,11 +181,13 @@ export default async function DashboardPage() {
             <p className="mt-1.5 text-2xl font-bold text-emerald-400">{fmt(totalIngresos)}</p>
             <p className="mt-1 text-[11px] text-white/30">{ingresoRows.length} transacciones</p>
           </div>
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">2024</p>
-            <p className="mt-1.5 text-2xl font-bold text-white">{fmt(total2024)}</p>
-            <p className="mt-1 text-[11px] text-white/30">Raúl Luna + Spartans</p>
-          </div>
+          {total2024 > 0 && (
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">2024</p>
+              <p className="mt-1.5 text-2xl font-bold text-white">{fmt(total2024)}</p>
+              <p className="mt-1 text-[11px] text-white/30">Raúl Luna + Spartans</p>
+            </div>
+          )}
           <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
             <p className="text-[10px] font-medium uppercase tracking-wider text-white/40">2025</p>
             <p className="mt-1.5 text-2xl font-bold text-white">{fmt(total2025)}</p>
