@@ -12,13 +12,13 @@ type CampanaRow = {
   id: string;
   nombre: string;
   tipo: string;
-  fecha: string;
+  fecha_inicio: string;
   ingresos: number;
 };
 
 type Ingreso = {
   id: string;
-  fecha: string;
+  fecha_inicio: string;
   año: number;
   fuente: string;
   descripcion: string;
@@ -59,17 +59,17 @@ export default async function IngresosPage() {
 
   const { data: campanas } = await supabase
     .from("campanas_marketing")
-    .select("id,nombre,tipo,fecha,ingresos")
+    .select("id,nombre,tipo,fecha_inicio,ingresos")
     .in("tipo", ["COMISION_2024", "ZELLE_SPARTANS_2024", "STRIPE_PAYOUT"])
     .gt("ingresos", 0)
-    .order("fecha", { ascending: false });
+    .order("fecha_inicio", { ascending: false });
 
   const rows = (campanas ?? []) as CampanaRow[];
 
   const ingresos: Ingreso[] = rows.map((r) => ({
     id: r.id,
-    fecha: r.fecha,
-    año: new Date(r.fecha).getFullYear(),
+    fecha: r.fecha_inicio ?? "",
+    año: r.fecha_inicio ? new Date(r.fecha_inicio).getFullYear() : 0,
     fuente: mapFuente(r.tipo),
     descripcion: r.nombre,
     monto: r.ingresos,
@@ -106,11 +106,13 @@ export default async function IngresosPage() {
     { año: "2025", comisiones: 0, zelle: 0, stripe: Math.round(stripe2025) },
   ];
 
-  const byYear = [2025, 2024].map((year) => ({
-    year,
-    items: ingresos.filter((i) => i.año === year),
-    total: ingresos.filter((i) => i.año === year).reduce((s, i) => s + i.monto, 0),
-  }));
+  const byYear = [2025, 2024]
+    .map((year) => ({
+      year,
+      items: ingresos.filter((i) => i.año === year),
+      total: ingresos.filter((i) => i.año === year).reduce((s, i) => s + i.monto, 0),
+    }))
+    .filter((y) => y.items.length > 0);
 
   return (
     <div className="flex flex-col gap-6 p-6 pb-10">
